@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum TriggerType {
+  EXIT_INTENT
+  IDLE_TIME
+}
+
+enum OfferType {
+  SHIPPING_DISCOUNT
+  FREE_GIFT_SKU
+  FIXED_DISCOUNT
+  EXPRESS_SHIPPING_UPGRADE
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum AnalyticsEventType {
+  IMPRESSION
+  OFFER_SHOWN
+  OFFER_ACCEPTED
+  OFFER_DISMISSED
+  CHECKOUT_COMPLETED
+  ABANDONMENT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  stores       Store[]
+}
+
+model Store {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  publicKey       String            @unique
+  domain          String?
+  ownerId         String
+  owner           User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  campaigns       Campaign[]
+  offers          Offer[]
+  analyticsEvents AnalyticsEvent[]
+}
+
+model Offer {
+  id                       String           @id @default(cuid())
+  storeId                  String
+  store                    Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  type                     OfferType
+  title                    String
+  description              String
+  ctaLabel                 String           @default("Apply offer")
+  payloadJson              String
+  maxRedemptionsPerSession Int              @default(1)
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  campaign                 Campaign?
+  analyticsEvents          AnalyticsEvent[]
+}
+
+model Campaign {
+  id                 String           @id @default(cuid())
+  storeId            String
+  store              Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name               String
+  status             CampaignStatus   @default(DRAFT)
+  priority           Int              @default(0)
+  minCartCents       Int              @default(0)
+  maxCartCents       Int?
+  geoCountries       String           @default("[]")
+  triggerType        TriggerType
+  idleSeconds        Int?
+  marginFloorPercent Float?
+  offerId            String           @unique
+  offer              Offer            @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  analyticsEvents    AnalyticsEvent[]
+
+  @@index([storeId, status])
+}
+
+model AnalyticsEvent {
+  id           String             @id @default(cuid())
+  storeId      String
+  store        Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  campaignId   String?
+  campaign     Campaign?          @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  offerId      String?
+  offer        Offer?             @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  sessionId    String
+  eventType    AnalyticsEventType
+  cartCents    Int?
+  country      String?
+  metadataJson String?
+  createdAt    DateTime           @default(now())
+
+  @@index([storeId, createdAt])
+  @@index([campaignId, eventType])
+}

@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# D2C Checkout Optimizer
 
-## Getting Started
+Multi-tenant SaaS for dynamic checkout-stage offers (exit-intent, idle time) with analytics and an embeddable widget SDK.
 
-First, run the development server:
+## Quick start
 
 ```bash
+npm install
+npm run db:setup    # prisma db push + seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Demo credentials
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Field | Value |
+|-------|--------|
+| Email | `demo@checkoutoptimizer.dev` |
+| Password | `demo1234` |
+| Widget store key | `cko_demo_store_key_for_local_testing` |
 
-## Learn More
+## Test the widget
 
-To learn more about Next.js, take a look at the following resources:
+1. Start the dev server: `npm run dev`
+2. Open [http://localhost:3000/test-checkout.html](http://localhost:3000/test-checkout.html)
+3. Trigger exit-intent (move mouse quickly to top of viewport) or wait 45s for idle offer
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API endpoints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `POST /api/engine/evaluate` | `X-Store-Key` | Match campaigns and return offer |
+| `POST /api/analytics/track` | `X-Store-Key` | Beacon analytics events |
+| `GET /api/widget/sdk?key=` | — | Embeddable JavaScript SDK |
+| `GET/POST /api/campaigns` | Session | Campaign CRUD (dashboard) |
 
-## Deploy on Vercel
+### Evaluate example
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+curl -X POST http://localhost:3000/api/engine/evaluate \
+  -H "Content-Type: application/json" \
+  -H "X-Store-Key: cko_demo_store_key_for_local_testing" \
+  -d '{
+    "sessionId": "test_1",
+    "trigger": "EXIT_INTENT",
+    "cartTotalCents": 7500,
+    "country": "US",
+    "durationOnPageMs": 12000
+  }'
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment
+
+Copy `.env.example` to `.env` and set:
+
+- `DATABASE_URL` — SQLite path (`file:./dev.db`)
+- `AUTH_SECRET` — random string for NextAuth
+- `NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL` — app origin
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Dev server (builds widget first) |
+| `npm run build` | Production build |
+| `npm run build:widget` | Bundle SDK to `public/widget/` |
+| `npm run db:setup` | Push schema + seed |

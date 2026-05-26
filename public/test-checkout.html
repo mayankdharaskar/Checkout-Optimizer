@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout Widget Test</title>
+    <meta name="cko:cart-cents" content="7500" />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 640px;
+        margin: 48px auto;
+        padding: 0 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mock checkout page</h1>
+    <p>
+      Cart total: <strong>$75.00</strong>. Move mouse to top edge quickly for
+      exit-intent, or wait 45s for idle trigger.
+    </p>
+    <script
+      async
+      src="/api/widget/sdk?key=cko_demo_store_key_for_local_testing"
+      data-checkout-optimizer
+      data-idle-seconds="45"
+      data-country="US"
+      data-cart-cents="7500"
+    ></script>
+  </body>
+</html>
