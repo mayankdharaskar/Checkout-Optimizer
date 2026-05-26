@@ -1,12 +1,8 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { createPrismaClient } from "../src/lib/create-prisma-client";
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./dev.db",
-});
-const prisma = new PrismaClient({ adapter });
+const prisma = createPrismaClient();
 
 const DEMO_PUBLIC_KEY = "cko_demo_store_key_for_local_testing";
 
