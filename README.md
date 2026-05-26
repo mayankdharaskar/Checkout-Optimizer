@@ -1,4 +1,4 @@
-# D2C Checkout Optimizer
+# Checkout Optimizer
 
 Multi-tenant SaaS for dynamic checkout-stage offers (exit-intent, idle time) with analytics and an embeddable widget SDK.
 
